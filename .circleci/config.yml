@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/php:7.4-stretch-node-browsers
+      - image: circleci/php:7.4-node-browsers-legacy
         environment:
           APP_ENV: testing
           APP_KEY: base64:pzXA2hCv/Uqn416ctav9agYqahmLvrxpTgI4DlqOh0U=
