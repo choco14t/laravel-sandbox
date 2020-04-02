@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  test:
+  build:
     docker:
       - image: circleci/php:7.4-node-browsers-legacy
         environment:
