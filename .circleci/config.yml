@@ -7,13 +7,14 @@ jobs:
           APP_ENV: testing
           APP_KEY: base64:pzXA2hCv/Uqn416ctav9agYqahmLvrxpTgI4DlqOh0U=
           DB_CONNECTION: mysql
-          DB_DATABASE: sandbox_test
+          DB_DATABASE: circleci
           DB_USERNAME: root
           DB_PASSWORD: secret
-      - image: circleci/mysql:5.7
+      - image: circleci/mysql:8
+        command: mysqld --default-authentication-plugin=mysql_native_password
         environment:
           MYSQL_ROOT_PASSWORD: secret
-          MYSQL_DATABASE: sandbox_test
+          MYSQL_DATABASE: circleci
 
     working_directory: ~/repo
 
@@ -26,7 +27,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "composer.json" }}
+            - v1-dependencies-{{ checksum "composer.lock" }}
             - v1-dependencies-
 
       - run:
@@ -36,12 +37,20 @@ jobs:
       - save_cache:
           paths:
             - ./vendor
-          key: v1-dependencies-{{ checksum "composer.json" }}
+          key: v1-dependencies-{{ checksum "composer.lock" }}
 
       - run: php artisan migrate
-      - run: php artisan db:seed
+
       - run:
           name: Run tests
           command: phpdbg -qrr vendor/bin/phpunit --coverage-html build/coverage-report
+
       - store_artifacts:
           path:  build/coverage-report
+
+      - run:
+          name: Notify to discord
+          command: |
+            curl -sS -XPOST -H "Content-Type: application/json" \
+            -d '{"content": ":newspaper: [Coverage report](https://'"$CIRCLE_BUILD_NUM"'-251169873-gh.circle-artifacts.com/0/build/coverage-report/index.html)"}' \
+            $DISCORD_WEB_HOOK >/dev/null
