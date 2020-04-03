@@ -43,5 +43,13 @@ jobs:
       - run:
           name: Run tests
           command: phpdbg -qrr vendor/bin/phpunit --coverage-html build/coverage-report
+
       - store_artifacts:
           path:  build/coverage-report
+
+      - run:
+          name: Notify to discord
+          command: |
+            curl -sS -XPOST -H "Content-Type: application/json" \
+            -d '{"content": ":newspaper: [Coverage report](https://$CIRCLE_BUILD_NUM-251169873-gh.circle-artifacts.com/0/build/coverage-report/index.html)"}' \
+            $DISCORD_WEB_HOOK >/dev/null
