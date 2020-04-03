@@ -3,17 +3,17 @@ jobs:
   build:
     docker:
       - image: circleci/php:7.4-node-browsers-legacy
-        environment:
-          APP_ENV: testing
-          APP_KEY: base64:pzXA2hCv/Uqn416ctav9agYqahmLvrxpTgI4DlqOh0U=
-          DB_CONNECTION: mysql
-          DB_DATABASE: sandbox_test
-          DB_USERNAME: root
-          DB_PASSWORD: secret
-      - image: circleci/mysql:5.7
-        environment:
-          MYSQL_ROOT_PASSWORD: secret
-          MYSQL_DATABASE: sandbox_test
+      - image: circleci/mysql:8
+        command: mysqld --default-authentication-plugin=mysql_native_password
+      environment:
+        - APP_ENV: testing
+        - APP_KEY: base64:pzXA2hCv/Uqn416ctav9agYqahmLvrxpTgI4DlqOh0U=
+        - DB_CONNECTION: mysql
+        - DB_DATABASE: circleci
+        - DB_USERNAME: root
+        - DB_PASSWORD: secret
+        - MYSQL_ROOT_PASSWORD: secret
+        - MYSQL_DATABASE: circleci
 
     working_directory: ~/repo
 
@@ -26,7 +26,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "composer.json" }}
+            - v1-dependencies-{{ checksum "composer.lock" }}
             - v1-dependencies-
 
       - run:
@@ -36,10 +36,10 @@ jobs:
       - save_cache:
           paths:
             - ./vendor
-          key: v1-dependencies-{{ checksum "composer.json" }}
+          key: v1-dependencies-{{ checksum "composer.lock" }}
 
       - run: php artisan migrate
-      - run: php artisan db:seed
+
       - run:
           name: Run tests
           command: phpdbg -qrr vendor/bin/phpunit --coverage-html build/coverage-report
